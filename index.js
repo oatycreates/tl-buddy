@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * TLBuddy
  *
@@ -8,6 +10,8 @@
  * https://discord.com/oauth2/authorize?client_id=853320365514031155&scope=bot+applications.commands
  *
  * To run the bot locally (needs Node/npm installed): npm install && node .
+ *
+ * To deploy to Google App Engine (once configured): gcloud app deploy
  *
  * If you find this bot useful, please consider supporting at:
  * https://ko-fi.com/oatycreates
@@ -22,6 +26,7 @@ dotenv.config();
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const DISCORD_API_KEY = process.env.DISCORD_API_KEY;
 
+import express from 'express';
 // See: https://developers.google.com/youtube/v3/docs
 import { google, youtube_v3 } from 'googleapis';
 // import 'google-auth-library'; // May not be needed
@@ -32,6 +37,7 @@ import URI from 'uri.js';
 // See: https://lodash.com/
 import _ from 'lodash';
 
+const expressApp = express();
 const youtube = google.youtube({
   version: 'v3',
   auth: YOUTUBE_API_KEY,
@@ -77,6 +83,23 @@ let trackedVids = [/*
   }
 */];
 
+// Start a basic server so the hosting platform knows the script is active
+expressApp.get('/', (req, res) => {
+  // Just report OK for now
+  res.status(200).send().end();
+});
+
+// Start the server, Discord/YT communication is handled by their libraries
+const PORT = process.env.PORT || 8080;
+expressApp.listen(PORT, () => {
+  if (!beenInitialised) {
+    init();
+  }
+
+  console.log(`App listening on port ${PORT}`);
+  console.log('Press Ctrl+C to quit.');
+});
+
 async function init() {
   if (beenInitialised) {
     console.error('Already initialised!');
@@ -86,10 +109,11 @@ async function init() {
   // Prepare API clients
   await loginDiscord()
     .then(registerDiscordListeners)
-    .then(() => {
-      console.log('API clients initialised!');
-      beenInitialised = true;
-    });
+    .then(function () {
+        console.log('API clients initialised!');
+        beenInitialised = true;
+      },
+      function (err) { console.error('Error preparing API clients', err); });
 }
 
 function loginDiscord() {
@@ -189,8 +213,9 @@ async function registerVideoSubscriber(videoId, discordChannelId, discordChannel
   if (_.isEmpty(trackedVids[videoId])) {
     // This is a new video, register for polling
     let liveChatId = await fetchChatId(videoId);
-    if (liveChatId === null || liveChatId.length === 0) {
-      sendDiscordMessage(discordChannel, `Couldn't find a live chat for video \`${videoId}\`, is it a livestream? Or an internal error occurred.`);
+    if (_.isEmpty(liveChatId)) {
+      console.log(`Couldn't find a live chat for video \`${videoId}\`.`);
+      sendDiscordMessage(discordChannel, `Couldn't find a live chat for video \`${videoId}\`, is it a livestream?\nOr an internal error may have occurred.`);
       return null;
     }
 
@@ -437,8 +462,4 @@ function fetchMessages(liveChatId, pageToken) {
           error: err,
         };
       });
-}
-
-if (!beenInitialised) {
-  init();
 }

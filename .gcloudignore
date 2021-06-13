@@ -1,0 +1,10 @@
+# See: https://cloud.google.com/sdk/gcloud/reference/topic/gcloudignore
+
+# Environment vars
+# .env # Create a .env file with the relevant API keys
+
+# NPM
+node_modules/
+
+# General assets
+Assets/

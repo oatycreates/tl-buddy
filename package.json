@@ -5,9 +5,20 @@
   "description": "Provides notifications on Discord for translation messages posted during livestreams. Offers customisable prefixes to match the translation style and language.",
   "main": "index.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oatycreates/tl-buddy.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "start": "node ."
+  },
   "dependencies": {
     "discord.js": "^12.5.3",
     "dotenv": "^10.0.0",
+    "express": "^4.17.1",
     "google-auth-library": "^7.1.2",
     "googleapis": "^76.0.0",
     "lodash": "^4.17.21",
