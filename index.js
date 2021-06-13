@@ -141,7 +141,7 @@ function handleDiscordMsg(message) {
     } else {
       // Notify user that the video ID couldn't be found and a standard YouTube link is needed.
       sendDiscordMessage(message.channel, `Couldn\'t find that video ID!\nFormat: \`${SUBSCRIBE_COMMAND} https://www.youtube.com/watch?v=###########\``);
-      console.warn('Empty video ID!');
+      console.log('Empty video ID provided.');
     }
   } else if (message.content.startsWith(UNSUBSCRIBE_COMMAND)) {
     // Unsubscribe from all videos on the current channel
@@ -174,8 +174,8 @@ function handleDiscordMsg(message) {
       console.log(prefixMsg + ` in channel ${message.channel.id}`);
       sendDiscordMessage(message.channel, prefixMsg);
     } else {
-      sendDiscordMessage(message.channel, `Couldn\'t add translation prefix!\nFormat (space-separated): \`${PREFIX_ADD_COMMAND} [ES] ES:\``);
-      console.warn(`Couldn\'t add translation prefix!`);
+      sendDiscordMessage(message.channel, `Couldn\'t add translation prefixes!\nFormat (space-separated): \`${PREFIX_ADD_COMMAND} [ES] ES:\``);
+      console.log(`Couldn\'t add translation prefixes! Invalid format or blank.`);
     }
   }
 }
@@ -193,10 +193,10 @@ function extractVideoId(msgData) {
     if (!_.isEmpty(videoUrl.query) && !_.isEmpty(videoUrl.query.v)) {
       videoId = videoUrl.query.v;
     } else {
-      console.warn('Invalid video URL format!');
+      console.log('Invalid video URL format!');
     }
   } else {
-    console.warn('Invalid subscribe command format!');
+    console.log('Invalid subscribe command format!');
   }
 
   return videoId;
@@ -282,7 +282,7 @@ async function pollMessages_R(videoId) {
     if (!stopFromAPIError && trackedVids[videoId].pollTime > 0) {
       setTimeout(() => pollMessages_R(videoId), trackedVids[videoId].pollTime);
     } else if (stopFromAPIError) {
-      console.log(`Stopped listening for livestream: \`${videoId}\`, due to YT API response error.`);
+      console.warn(`Stopped listening for livestream: \`${videoId}\`, due to YT API response error.`);
       _.forEach(trackedVids[videoId].subscribers, (sub) => {
         sendDiscordMessage(sub.discordChannel, `Stopped listening for livestream: \`${videoId}\`, an internal error occurred.`);
       });
@@ -417,7 +417,7 @@ function fetchChatId(videoId) {
       } else {
         // No matching livestream chat was found livestream may have ended or
         // it's a video that doesn't have a live chat
-        console.warn('No matching livestream chat was found for video ID', videoId);
+        console.log('No matching livestream chat was found for video ID', videoId);
       }
 
       return liveChatId;
