@@ -28,7 +28,7 @@
  *
  * !tlwatch https://www.youtube.com/watch?v=###########
  * !tlstop
- * !tlprefix [EN] EN:
+ * !tlprefix [ES] ES:
  */
 
 // Set up environment variables
