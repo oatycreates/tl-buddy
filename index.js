@@ -51,7 +51,7 @@ const PREFIX_ADD_COMMAND = '!tlprefix';
 
 const DEFAULT_CHAT_PREFIXES = ['[EN]', 'EN:']; // Use until specific ones are provided
 // Maximum number of messages to get per paged request between [200,2000] default 500
-const MAX_LIVE_MESSAGES_PAGE = 500;
+const MAX_LIVE_MESSAGES_PAGE = 2000;
 // Lowest live chat poll time allowed, will go higher if YouTube API requests it
 // 30 seconds wait should allow approx 83 continuously run videos in a day
 // realistically most videos should be shorter than that and not continuously
@@ -76,7 +76,7 @@ let trackedVids = [/*
         ],
         postedMessages: [
           discordMessageId: '######',
-          youtubeMessageId: '######',
+          youtubeMessageIds: ['######'], // All YT messages that were rolled up into this post
         ]
       }
     ]
@@ -152,7 +152,7 @@ function handleDiscordMsg(message) {
     });
 
     console.log(`No longer listening for translations for channel ${message.channel.id}`);
-    sendDiscordMessage(message.channel, 'No longer listening for translations.');
+    sendDiscordMessage(message.channel, 'No longer listening for translations in this channel.');
   } else if (message.content.startsWith(PREFIX_ADD_COMMAND)) {
     // Replace new prefixes to search for in translation messages
     let msgParts = message.content.split(' ');
@@ -323,7 +323,9 @@ function processYTChatMessages(videoId, messages) {
 
     batchedMessages.forEach(async batchedMsg => {
       let postedMsgIndex = _.findIndex(sub.postedMessages, (msg) => {
-        return _.findIndex(batchedMessages.postIds, (postId) => msg.youtubeMessageId === postId) !== -1;
+        return _.findIndex(msg.youtubeMessageIds, (ytMsgId) => {
+          return _.findIndex(batchedMessages.postIds, (postId) => _.isEqual(ytMsgId, postId)) !== -1;
+        }) !== -1;
       });
       if (postedMsgIndex === -1) {
         // Share this message to Discord
@@ -331,7 +333,7 @@ function processYTChatMessages(videoId, messages) {
 
         sub.postedMessages.push({
           discordMessageId: sentMsg.id,
-          youtubeMessageId: id,
+          youtubeMessageIds: batchedMsg.postIds,
         });
       }
     })
