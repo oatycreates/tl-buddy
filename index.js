@@ -86,7 +86,7 @@ let trackedVids = [/*
 // Start a basic server so the hosting platform knows the script is active
 expressApp.get('/', (req, res) => {
   // Just report OK for now
-  res.status(200).send().end();
+  res.status(200).send('App status OK').end();
 });
 
 // Start the server, Discord/YT communication is handled by their libraries
