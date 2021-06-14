@@ -170,7 +170,7 @@ function handleDiscordMsg(message) {
           }
         })
       });
-      let prefixMsg = `Now also listening for translation prefixes: \`${listeningPrefixes.join(' ')}\``;
+      let prefixMsg = `Now listening for translation prefixes: \`${listeningPrefixes.join(' ')}\``;
       console.log(prefixMsg + ` in channel ${message.channel.id}`);
       sendDiscordMessage(message.channel, prefixMsg);
     } else {
