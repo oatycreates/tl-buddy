@@ -276,7 +276,7 @@ async function registerVideoSubscriber(videoId, discordChannelId, discordChannel
  * @param {String} videoId YouTube video ID to use.
  */
 async function pollMessages_R(videoId) {
-  let messageData = await fetchMessages(trackedVids[videoId].liveChatId, '');
+  let messageData = await fetchMessages(trackedVids[videoId].liveChatId, trackedVids[videoId].nextPageToken);
 
   if (trackedVids[videoId].pollTime <= 0) {
     return;
@@ -345,7 +345,7 @@ function processYTChatMessages(videoId, messages) {
     batchedMessages.forEach(async batchedMsg => {
       let postedMsgIndex = _.findIndex(sub.postedMessages, (msg) => {
         return _.findIndex(msg.youtubeMessageIds, (ytMsgId) => {
-          return _.findIndex(batchedMessages.postIds, (postId) => _.isEqual(ytMsgId, postId)) !== -1;
+          return _.findIndex(batchedMsg.postIds, (postId) => _.isEqual(ytMsgId, postId)) !== -1;
         }) !== -1;
       });
       if (postedMsgIndex === -1) {
