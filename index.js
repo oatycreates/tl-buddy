@@ -265,7 +265,7 @@ async function registerVideoSubscriber(videoId, discordChannelId, discordChannel
   console.log(`Listening for translations for video \`${videoId}\`.`);
   sendDiscordMessage(discordChannel, `Listening for translations for livestream \`${videoId}\`.` +
     `\nStop with \`${UNSUBSCRIBE_COMMAND}\` and set prefixes to listen for with \`${PREFIX_SET_COMMAND}\`` +
-    ` (Defaults to: \`${DEFAULT_CHAT_PREFIXES.join(' ')}\`)`);
+    ` (Defaults: \`${DEFAULT_CHAT_PREFIXES.join(' ')}\`)`);
 
   return trackedVids[videoId].liveChatId;
 }
@@ -379,8 +379,9 @@ function prepareBatchTLMessages(messages, chatPrefixes) {
     let { id, authorDetails, snippet } = message;
     let messageText = snippet.displayMessage;
 
+    // Compare case-insensitive to avoid the need for too many similar prefixes
     let matchingChatPrefix = _.findIndex(chatPrefixes, (prefix) => (
-      messageText.includes(prefix)
+      messageText.toLowerCase().includes(prefix.toLowerCase())
     )) !== -1;
 
     if (matchingChatPrefix) {
