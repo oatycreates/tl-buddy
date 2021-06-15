@@ -65,10 +65,11 @@ const DEFAULT_CHAT_PREFIXES = ['[EN]', 'EN:']; // Use until specific ones are pr
 // Maximum number of messages to get per paged request between [200,2000] default 500
 const MAX_LIVE_MESSAGES_PAGE = 2000;
 // Lowest live chat poll time allowed, will go higher if YouTube API requests it
-// 30 seconds wait should allow approx 83 continuously run videos in a day
-// realistically most videos should be shorter than that and not continuously
+// 30 seconds wait should allow approx 83 1hr videos to be tracked in a day
+// realistically most streams should be around that length and not continuously
 // tracked so this should provide ample video tracking before hitting YT API limts.
-const DEFAULT_LIVE_CHAT_POLL_TIME = 30000;// 5000;
+// See Assets/TLBuddyRateLimitCalculations.ods for calculator
+const DEFAULT_LIVE_CHAT_POLL_TIME = 20000;// 30000;// 5000;
 // How many translation messages to batch together to reduce API usage.
 const DISCORD_TL_MESSAGE_BATCH_MAX = 5;
 
