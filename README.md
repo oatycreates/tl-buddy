@@ -1,6 +1,6 @@
 # TLBuddy
 
-Provides notifications in Discord for translation messages posted during YouTube livestreams.
+Provides notifications in Discord for translation messages posted in any language during YouTube livestreams.
 Offers customisable prefixes to match the translation style and language.
 
 🤖 **Add TLBuddy to your Discord server:** [TLBuddy Invite Link](https://discord.com/oauth2/authorize?client_id=853320365514031155&scope=bot+applications.commands) 🤖

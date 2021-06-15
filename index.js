@@ -3,8 +3,10 @@
 /**
  * TLBuddy
  *
- * Provides notifications in Discord for translation messages posted during YouTube livestreams.
+ * Provides notifications in Discord for translation messages posted in any language during YouTube livestreams.
  * Offers customisable prefixes to match the translation style and language.
+ *
+ * Repo: https://github.com/oatycreates/tl-buddy
  *
  * ---
  *
