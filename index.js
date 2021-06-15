@@ -433,7 +433,7 @@ function fetchChatId(videoId) {
       // Pull live chat ID from video livestream data
       let responseData = response.data;
       let liveChatId = null;
-      if (responseData.items.length > 0) {
+      if (responseData.items.length > 0 && !_.isEmpty(responseData.items[0].liveStreamingDetails)) {
         liveChatId = responseData.items[0].liveStreamingDetails.activeLiveChatId;
       } else {
         // No matching livestream chat was found livestream may have ended or
