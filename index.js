@@ -67,7 +67,7 @@ const discordClient = new Discord.Client();
 // Discord messages must start with these commands to be recognised
 const SUBSCRIBE_COMMAND = '!tlwatch';
 const UNSUBSCRIBE_COMMAND = '!tlstop';
-const PREFIX_ADD_COMMAND = '!tlprefix';
+const PREFIX_SET_COMMAND = '!tlprefix';
 
 const DEFAULT_CHAT_PREFIXES = ['[EN]', 'EN:']; // Use until specific ones are provided
 // Maximum number of messages to get per paged request between [200,2000] default 500
@@ -161,8 +161,8 @@ function handleDiscordMsg(message) {
       registerVideoSubscriber(videoId, discordChannelId, message.channel);
     } else {
       // Notify user that the video ID couldn't be found and a standard YouTube link is needed.
-      sendDiscordMessage(message.channel, `Couldn\'t find that video ID!\nFormat: \`${SUBSCRIBE_COMMAND} https://www.youtube.com/watch?v=###########\``);
-      console.log('Empty video ID provided.');
+      sendDiscordMessage(message.channel, `Couldn\'t find that livestream!\nFormat: \`${SUBSCRIBE_COMMAND} https://www.youtube.com/watch?v=###########\``);
+      console.log('Empty or invalid video ID provided.');
     }
   } else if (message.content.startsWith(UNSUBSCRIBE_COMMAND)) {
     // Unsubscribe from all videos on the current channel
@@ -174,7 +174,7 @@ function handleDiscordMsg(message) {
 
     console.log(`No longer listening for translations for channel ${message.channel.id}`);
     sendDiscordMessage(message.channel, 'No longer listening for translations in this channel.');
-  } else if (message.content.startsWith(PREFIX_ADD_COMMAND)) {
+  } else if (message.content.startsWith(PREFIX_SET_COMMAND)) {
     // Replace new prefixes to search for in translation messages
     let msgParts = message.content.split(' ');
     if (msgParts.length >= 2 && msgParts[1].length > 0) {
@@ -195,8 +195,8 @@ function handleDiscordMsg(message) {
       console.log(prefixMsg + ` in channel ${message.channel.id}`);
       sendDiscordMessage(message.channel, prefixMsg);
     } else {
-      sendDiscordMessage(message.channel, `Couldn\'t add translation prefixes!\nFormat (space-separated): \`${PREFIX_ADD_COMMAND} [ES] ES:\``);
-      console.log(`Couldn\'t add translation prefixes! Invalid format or blank.`);
+      sendDiscordMessage(message.channel, `Couldn\'t set translation prefixes!\nFormat (space-separated): \`${PREFIX_SET_COMMAND} [ES] ES:\``);
+      console.log(`Couldn\'t set translation prefixes! Invalid format or blank.`);
     }
   }
 }
@@ -236,7 +236,7 @@ async function registerVideoSubscriber(videoId, discordChannelId, discordChannel
     let liveChatId = await fetchChatId(videoId);
     if (_.isEmpty(liveChatId)) {
       console.log(`Couldn't find a live chat for video \`${videoId}\`.`);
-      sendDiscordMessage(discordChannel, `Couldn't find a live chat for video \`${videoId}\`, is it a livestream?\nOr an internal error may have occurred.`);
+      sendDiscordMessage(discordChannel, `Couldn't find a live chat for video \`${videoId}\`, is it a livestream?\nOr couldn't talk with YouTube's servers.`);
       return null;
     }
 
@@ -263,8 +263,8 @@ async function registerVideoSubscriber(videoId, discordChannelId, discordChannel
   // Notify the Discord channel that the bot's now listening for translations
   //   mention how to stop the translations, and how to set more prefixes.
   console.log(`Listening for translations for video \`${videoId}\`.`);
-  sendDiscordMessage(discordChannel, `Listening for translations for video \`${videoId}\`.` +
-    `\nStop with \`${UNSUBSCRIBE_COMMAND}\` and set prefixes to listen for with \`${PREFIX_ADD_COMMAND}\`` +
+  sendDiscordMessage(discordChannel, `Listening for translations for livestream \`${videoId}\`.` +
+    `\nStop with \`${UNSUBSCRIBE_COMMAND}\` and set prefixes to listen for with \`${PREFIX_SET_COMMAND}\`` +
     ` (Defaults to: \`${DEFAULT_CHAT_PREFIXES.join(' ')}\`)`);
 
   return trackedVids[videoId].liveChatId;
@@ -305,7 +305,7 @@ async function pollMessages_R(videoId) {
     } else if (stopFromAPIError) {
       console.warn(`Stopped listening for livestream: \`${videoId}\`, due to YT API response error.`);
       _.forEach(trackedVids[videoId].subscribers, (sub) => {
-        sendDiscordMessage(sub.discordChannel, `Stopped listening for livestream: \`${videoId}\`, an internal error occurred.`);
+        sendDiscordMessage(sub.discordChannel, `Stopped listening for livestream: \`${videoId}\`, couldn't talk with YouTube's servers.`);
       });
 
       delete trackedVids[videoId];
@@ -314,7 +314,7 @@ async function pollMessages_R(videoId) {
     // Stream is now offline, remove from subscriptions and notify listening chats
     console.log(`Livestream \`${videoId}\` has ended, stopping listening.`);
     _.forEach(trackedVids[videoId].subscribers, (sub) => {
-      sendDiscordMessage(sub.discordChannel, `Livestream has ended for \`${videoId}\`, stopping listening.`);
+      sendDiscordMessage(sub.discordChannel, `Livestream \`${videoId}\` has ended, stopping listening.`);
     });
 
     delete trackedVids[videoId];
