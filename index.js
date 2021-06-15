@@ -80,6 +80,8 @@ const MAX_LIVE_MESSAGES_PAGE = 2000;
 const DEFAULT_LIVE_CHAT_POLL_TIME = 20000;// 30000;// 5000;
 // How many translation messages to batch together to reduce API usage.
 const DISCORD_TL_MESSAGE_BATCH_MAX = 5;
+// For filtering out super chats and super stickers
+const YOUTUBE_MESSAGE_TYPE = 'textMessageEvent';
 
 let beenInitialised = false;
 let trackedVids = [/*
@@ -378,6 +380,11 @@ function prepareBatchTLMessages(messages, chatPrefixes) {
   messages.forEach(message => {
     let { id, authorDetails, snippet } = message;
     let messageText = snippet.displayMessage;
+
+    if (!_.isEqual(snippet.type, YOUTUBE_MESSAGE_TYPE)) {
+      // This isn't a text only message, probably a super-chat, discard
+      return;
+    }
 
     // Compare case-insensitive to avoid the need for too many similar prefixes
     let matchingChatPrefix = _.findIndex(chatPrefixes, (prefix) => (
