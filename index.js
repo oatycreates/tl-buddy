@@ -3,7 +3,7 @@
 /**
  * TLBuddy
  *
- * Provides notifications on Discord for translation messages posted during YouTube livestreams.
+ * Provides notifications in Discord for translation messages posted during YouTube livestreams.
  * Offers customisable prefixes to match the translation style and language.
  *
  * Add this bot to your Discord server:
@@ -17,6 +17,10 @@
  * Author: Oats - @OatyCreates ©2021
  *
  * ---
+ *
+ * Ensure you set up a .env file in this folder and set:
+ * YOUTUBE_API_KEY (from Google Cloud Platform - YouTube APIs)
+ * DISCORD_API_KEY (from Discord Developer Portal - Bot Token)
  *
  * To run the bot locally (needs Node/npm installed): npm install && node .
  *
