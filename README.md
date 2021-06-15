@@ -7,7 +7,7 @@ Offers customisable prefixes to match the translation style and language.
 https://discord.com/oauth2/authorize?client_id=853320365514031155&scope=bot+applications.commands
 
 If you find this bot useful, please consider supporting at:
-https://ko-fi.com/oatycreates
+[ko-fi.com/oatycreates](https://ko-fi.com/oatycreates)
 
 Thanks as always to the translators ❤
 
