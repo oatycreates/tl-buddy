@@ -78,8 +78,8 @@ const MAX_LIVE_MESSAGES_PAGE = 2000;
 // tracked so this should provide ample video tracking before hitting YT API limts.
 // See Assets/TLBuddyRateLimitCalculations.ods for calculator
 const LIVE_CHAT_REFRESH_TIME = 20000;
-// How often to send off any live chat refresh request
-const LIVE_CHAT_REQUEST_INTERVAL = 5000;
+// How often between sending any two live chat refresh requests
+const LIVE_CHAT_REQUEST_INTERVAL = 1000;
 // Lowest live chat poll time allowed, will go higher if YouTube API requests it
 // How many translation messages to batch together to reduce API usage.
 const DISCORD_TL_MESSAGE_BATCH_MAX = 5;
