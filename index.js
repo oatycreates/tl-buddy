@@ -72,12 +72,15 @@ const PREFIX_SET_COMMAND = '!tlprefix';
 const DEFAULT_CHAT_PREFIXES = ['[EN]', 'EN:']; // Use until specific ones are provided
 // Maximum number of messages to get per paged request between [200,2000] default 500
 const MAX_LIVE_MESSAGES_PAGE = 2000;
-// Lowest live chat poll time allowed, will go higher if YouTube API requests it
+// How often to schedule a video in for live chat fetching
 // 30 seconds wait should allow approx 83 1hr videos to be tracked in a day
 // realistically most streams should be around that length and not continuously
 // tracked so this should provide ample video tracking before hitting YT API limts.
 // See Assets/TLBuddyRateLimitCalculations.ods for calculator
-const DEFAULT_LIVE_CHAT_POLL_TIME = 20000;// 30000;// 5000;
+const LIVE_CHAT_REFRESH_TIME = 20000;
+// How often to send off any live chat refresh request
+const LIVE_CHAT_REQUEST_INTERVAL = 5000;
+// Lowest live chat poll time allowed, will go higher if YouTube API requests it
 // How many translation messages to batch together to reduce API usage.
 const DISCORD_TL_MESSAGE_BATCH_MAX = 5;
 // For filtering out super chats and super stickers
@@ -105,6 +108,8 @@ let trackedVids = [/*
     ]
   }
 */];
+// Used to spread out YT live chat API requests to avoid hitting interval quotas
+let scheduledChatRequests = [/*videoId, videoId, videoId*/];
 
 // Start a basic server so the hosting platform knows the script is active
 expressApp.get('/', (req, res) => {
@@ -134,6 +139,10 @@ async function init() {
     .then(registerDiscordListeners)
     .then(function () {
         console.log('API clients initialised!');
+
+        // Schedule a function to periodically send off a live chat request to avoid API quota limits
+        setInterval(() => checkSendLiveChatRequest(), LIVE_CHAT_REQUEST_INTERVAL);
+
         beenInitialised = true;
       },
       function (err) { console.error('Error preparing API clients', err); });
@@ -244,10 +253,10 @@ async function registerVideoSubscriber(videoId, discordChannelId, discordChannel
 
     trackedVids[videoId] = {
       liveChatId,
-      pollTime: DEFAULT_LIVE_CHAT_POLL_TIME,
+      pollTime: LIVE_CHAT_REFRESH_TIME,
       subscribers: []
     }
-    pollMessages_R(videoId);
+    scheduledChatRequests.push(videoId);
   }
 
   let hasExistingSub = _.findIndex(trackedVids[videoId].subscribers, (sub) => {
@@ -273,24 +282,40 @@ async function registerVideoSubscriber(videoId, discordChannelId, discordChannel
 }
 
 /**
- * Polls for YouTube live chat messages at the requested interval until stopped
- * (the last subscriber for a video unsubscribes or the video ends).
- * @param {String} videoId YouTube video ID to use.
+ * Periodically run to send off any pending live chat requests.
  */
-async function pollMessages_R(videoId) {
-  let messageData = await fetchMessages(trackedVids[videoId].liveChatId, trackedVids[videoId].nextPageToken);
-
-  if (trackedVids[videoId].pollTime <= 0) {
+function checkSendLiveChatRequest() {
+  if (scheduledChatRequests.length === 0) {
+    // No live chats to request, skip
     return;
   }
 
+  // Grab first videoId and remove
+  let videoId = scheduledChatRequests.shift();
+  refreshLiveChat(videoId);
+
+  // Log only if there are requests remaining to avoid clutter
+  let remainingRequests = scheduledChatRequests.length;
+  if (remainingRequests > 0) {
+    console.log(`Sent scheduled live chat refresh for video ${videoId}, remaining in queue: ${remainingRequests}`);
+  }
+}
+
+/**
+ * Refreshes for YouTube live chat messages at the requested interval until stopped
+ * (the last subscriber for a video unsubscribes or the video ends).
+ * @param {String} videoId YouTube video ID to use.
+ */
+async function refreshLiveChat(videoId) {
+  let messageData = await fetchMessages(trackedVids[videoId].liveChatId, trackedVids[videoId].nextPageToken);
   let { messages, nextPageToken, offlineAt, pollingIntervalMillis } = messageData;
+
   if (_.isEmpty(offlineAt)) {
     let stopFromAPIError = false;
     if (_.isEmpty(messageData.error)) {
       trackedVids[videoId].nextPageToken = nextPageToken;
       // Don't ever poll faster than the default to avoid hitting API quota limits
-      trackedVids[videoId].pollTime = pollingIntervalMillis > DEFAULT_LIVE_CHAT_POLL_TIME ? pollingIntervalMillis : DEFAULT_LIVE_CHAT_POLL_TIME;
+      trackedVids[videoId].pollTime = pollingIntervalMillis > LIVE_CHAT_REFRESH_TIME ? pollingIntervalMillis : LIVE_CHAT_REFRESH_TIME;
 
       // Process messages, ignores duplicates
       processYTChatMessages(videoId, messages);
@@ -303,7 +328,7 @@ async function pollMessages_R(videoId) {
 
     // Schedule the next message check if valid
     if (!stopFromAPIError && trackedVids[videoId].pollTime > 0) {
-      setTimeout(() => pollMessages_R(videoId), trackedVids[videoId].pollTime);
+      setTimeout(() => scheduledChatRequests.push(videoId), trackedVids[videoId].pollTime);
     } else if (stopFromAPIError) {
       console.warn(`Stopped listening for livestream: \`${videoId}\`, due to YT API response error.`);
       _.forEach(trackedVids[videoId].subscribers, (sub) => {
