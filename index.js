@@ -308,6 +308,19 @@ function checkSendLiveChatRequest() {
  * @param {String} videoId YouTube video ID to use.
  */
 async function refreshLiveChat(videoId) {
+  if (!_.hasIn(trackedVids, videoId)) {
+    // Video is no longer being tracked, skip
+    console.log(`Skipping refreshing live chat for video \`${videoId}\`, no longer tracked.`);
+    return;
+  }
+
+  if (trackedVids[videoId].subscribers.length === 0) {
+    // No more subscribers for the video, stop listening
+    console.log(`No more subscribers for livestream \`${videoId}\`, stopping listening.`);
+    delete trackedVids[videoId];
+    return;
+  }
+
   let messageData = await fetchMessages(trackedVids[videoId].liveChatId, trackedVids[videoId].nextPageToken);
   let { messages, nextPageToken, offlineAt, pollingIntervalMillis } = messageData;
 
