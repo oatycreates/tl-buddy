@@ -69,7 +69,7 @@ const SUBSCRIBE_COMMAND = '!tlwatch';
 const UNSUBSCRIBE_COMMAND = '!tlstop';
 const PREFIX_SET_COMMAND = '!tlprefix';
 
-const DEFAULT_CHAT_PREFIXES = ['[EN]', 'EN:']; // Use until specific ones are provided
+const DEFAULT_CHAT_PREFIXES = ['[EN', 'EN]', 'EN:']; // Use until specific ones are provided
 // Maximum number of messages to get per paged request between [200,2000] default 500
 const MAX_LIVE_MESSAGES_PAGE = 2000;
 // How often to schedule a video in for live chat fetching
@@ -97,8 +97,9 @@ let trackedVids = [/*
         discordChannelId: '#######', // Use this to prevent double subscribing instead of user ID
         discordChannel: [DiscordChannel], // For ease of use posting messages
         chatPrefixes: [ // Case sensitive
-          '[EN]'
-          'EN:'
+          '[EN',
+          'EN]',
+          'EN:',
         ],
         postedMessages: [
           discordMessageId: '######',
@@ -273,9 +274,9 @@ async function registerVideoSubscriber(videoId, discordChannelId, discordChannel
 
   // Notify the Discord channel that the bot's now listening for translations
   //   mention how to stop the translations, and how to set more prefixes.
-  console.log(`Listening for translations for video \`${videoId}\`.`);
-  sendDiscordMessage(discordChannel, `Listening for translations for livestream \`${videoId}\`.` +
-    `\nStop with \`${UNSUBSCRIBE_COMMAND}\` and set prefixes to listen for with \`${PREFIX_SET_COMMAND}\`` +
+  console.log(`Listening for translations for video: \`${videoId}\``);
+  sendDiscordMessage(discordChannel, `Listening for translations for livestream: \`${videoId}\`` +
+    `\nStop with \`${UNSUBSCRIBE_COMMAND}\`, set prefixes to listen for with \`${PREFIX_SET_COMMAND}\`` +
     ` (Defaults: \`${DEFAULT_CHAT_PREFIXES.join(' ')}\`)`);
 
   return trackedVids[videoId].liveChatId;
